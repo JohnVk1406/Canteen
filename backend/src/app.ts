@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import userRoutes from './routes/userRoutes.js';
+import { userRouter, itemRouter, paymentRouter, orderRouter, orderItemRouter } from './routes/index.js';
 
 const app = express();
 
@@ -10,7 +10,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use('/api/users', userRoutes);
+app.use('/api/users', userRouter);
+app.use('/api/items', itemRouter);
+app.use('/api/orders', orderRouter);
+app.use('/api/order-items', orderItemRouter);
+app.use('/api/payments', paymentRouter);
 
 // Health check
 app.get('/', (req, res) => {

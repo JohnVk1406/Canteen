@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { userController } from '../controller/index.js';
 
-const router = Router();
+const userRouter = Router();
 
 // CRUD routes
-router.post('/', userController.createUser);           // Create user
-router.get('/', userController.getAllUsers);           // Get all users
-router.get('/:id', userController.getUserById);        // Get user by ID
-router.put('/:id', userController.updateUser);         // Update user
-router.delete('/:id', userController.deleteUser);      // Delete user
+userRouter.post('/', userController.createUser);           // Create user
+userRouter.get('/', userController.getAllUsers);           // Get all users
+userRouter.get('/:id', userController.getUserById);        // Get user by ID
+userRouter.put('/:id', userController.updateUser);         // Update user
+userRouter.delete('/:id', userController.deleteUser);      // Delete user
 
-export default router;
+export default userRouter;
