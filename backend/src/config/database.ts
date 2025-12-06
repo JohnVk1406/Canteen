@@ -4,19 +4,13 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const sequelize = new Sequelize({
-  dialect: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT) || 5432,
   database: process.env.DB_NAME || 'canteen',
-  username: process.env.DB_USER || 'postgres',
+  username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
+  host: process.env.DB_HOST || '127.0.0.1',
+  port: Number(process.env.DB_PORT) || 5432,
+  dialect: 'postgres',
   logging: console.log, // Set to console.log to see SQL queries
-  pool: {
-    max: 5,
-    min: 0,
-    acquire: 30000,
-    idle: 10000,
-  },
 });
 
 export default sequelize;

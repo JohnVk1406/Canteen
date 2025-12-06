@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
-import { userRouter, itemRouter, paymentRouter, orderRouter, orderItemRouter } from './routes/index.js';
+
+// Import models to register them
+import { User , Item, Order , OrderItem } from './models/index.js';
 
 const app = express();
 
@@ -9,17 +11,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use('/api/users', userRouter);
-app.use('/api/items', itemRouter);
-app.use('/api/orders', orderRouter);
-app.use('/api/order-items', orderItemRouter);
-app.use('/api/payments', paymentRouter);
-
 // Health check
 app.get('/', (req, res) => {
-  res.json({ status: 'OK', message: 'Server is running' });
+  res.json({ 
+    status: 'OK', 
+    message: 'Canteen API Server is running',
+    timestamp: new Date().toISOString()
+  });
 });
+
+// TODO: Add your routes here
+// app.use('/api/users', userRoutes);
+// app.use('/api/items', itemRoutes);
+// app.use('/api/orders', orderRoutes);
 
 // 404 handler
 app.use((req, res) => {
