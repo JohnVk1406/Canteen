@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCart } from "@/contexts/CartContext";
-import Header from "@/components/Header";
+import Header from "@/components/Header"; 
 import { useState } from "react";
 
 const menuItems = [
