@@ -3,25 +3,40 @@
 import { useRouter } from "next/navigation";
 import { useOrder } from "@/contexts/OrderContext";
 import Header from "@/components/Header";
+import { useEffect } from "react";
 
 export default function OrdersPage() {
 	const router = useRouter();
-	const { orders, cancelOrder, deleteOrder } = useOrder();
+	const { orders, cancelOrder, deleteOrder, loading, refreshOrders } = useOrder();
+
+	// Refresh orders on mount
+	useEffect(() => {
+		refreshOrders();
+	}, []);
 
 	const getStatusColor = (status: string) => {
 		switch (status) {
-			case "confirmed":
-				return "bg-blue-100 text-blue-800";
-			case "processing":
-				return "bg-yellow-100 text-yellow-800";
-			case "delivered":
+			case "completed":
 				return "bg-green-100 text-green-800";
-			case "cancelled":
+			case "pending":
+				return "bg-yellow-100 text-yellow-800";
+			case "canceled":
 				return "bg-red-100 text-red-800";
 			default:
 				return "bg-gray-100 text-gray-800";
 		}
 	};
+
+	if (loading) {
+		return (
+			<div className="min-h-screen bg-gray-50">
+				<Header />
+				<main className="max-w-6xl mx-auto px-4 py-8">
+					<p className="text-center text-gray-600">Loading orders...</p>
+				</main>
+			</div>
+		);
+	}
 
 	return (
 		<div className="min-h-screen bg-gray-50">
@@ -50,7 +65,7 @@ export default function OrdersPage() {
 								<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
 									<div>
 										<h3 className="text-lg font-semibold text-gray-900">
-											{order.id}
+											Order #{order.id.slice(0, 8)}
 										</h3>
 										<p className="text-sm text-gray-600">
 											{new Date(order.createdAt).toLocaleDateString()}
@@ -63,15 +78,6 @@ export default function OrdersPage() {
 											)}`}
 										>
 											{order.status}
-										</span>
-										<span
-											className={`px-3 py-1 rounded-full text-sm font-medium ${
-												order.paymentStatus === "completed"
-													? "bg-green-100 text-green-800"
-													: "bg-orange-100 text-orange-800"
-											}`}
-										>
-											{order.paymentStatus}
 										</span>
 									</div>
 								</div>
@@ -100,16 +106,16 @@ export default function OrdersPage() {
 									>
 										View Details
 									</button>
-									{order.status !== "cancelled" && order.status !== "delivered" && (
+									{order.status !== "canceled" && order.status !== "completed" && (
 										<button
-											onClick={() => cancelOrder(order.id)}
+											onClick={async () => await cancelOrder(order.id)}
 											className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-4 py-2 rounded-lg text-sm"
 										>
 											Cancel Order
 										</button>
 									)}
 									<button
-										onClick={() => deleteOrder(order.id)}
+										onClick={async () => await deleteOrder(order.id)}
 										className="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded-lg text-sm"
 									>
 										Delete

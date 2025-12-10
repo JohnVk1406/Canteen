@@ -95,8 +95,12 @@ export async function processPayment(
 				return;
 			}
 
-			// Simulate 90% success rate
-			const isSuccess = Math.random() < 0.9;
+			// Test cards always succeed
+			const testCards = ['4532015112830366', '5425233010103442', '4111111111111111'];
+			const isTestCard = testCards.includes(paymentDetails.cardNumber.replace(/\s/g, ''));
+
+			// Test cards = 100% success, others = 90% success
+			const isSuccess = isTestCard ? true : Math.random() < 0.9;
 
 			if (isSuccess) {
 				resolve({

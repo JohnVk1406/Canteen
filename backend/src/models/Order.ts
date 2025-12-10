@@ -7,6 +7,7 @@ export interface OrderAttributes {
   userId: string;
   totalAmount: number;
   status: 'pending' | 'completed' | 'canceled';
+  items: any[]; // JSON array of order items
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,6 +22,7 @@ class Order extends Model<OrderAttributes, OrderCreationAttributes> implements O
   public userId!: string;
   public totalAmount!: number;
   public status!: 'pending' | 'completed' | 'canceled';
+  public items!: any[];
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -37,10 +39,6 @@ Order.init(
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: {
-        model: 'users',
-        key: 'id',
-      },
     },
     totalAmount: {
       type: DataTypes.DECIMAL(10, 2),
@@ -54,6 +52,11 @@ Order.init(
       type: DataTypes.ENUM('pending', 'completed', 'canceled'),
       allowNull: false,
       defaultValue: 'pending',
+    },
+    items: {
+      type: DataTypes.JSON,
+      allowNull: false,
+      defaultValue: [],
     },
     createdAt: {
       type: DataTypes.DATE,

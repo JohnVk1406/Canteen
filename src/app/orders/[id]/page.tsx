@@ -17,7 +17,7 @@ export default function OrderDetailsPage() {
 	const paymentSuccess = searchParams.get("payment") === "success";
 
 	const downloadReceipt = () => {
-		if (!order || !payment) return;
+		if (!order) return;
 
 		const receiptContent = `
 FOOD ORDERING APP - ORDER RECEIPT
@@ -27,19 +27,21 @@ ORDER ID: ${order.id}
 Date: ${new Date(order.createdAt).toLocaleString()}
 
 ITEMS:
-${order.items
-	.map(
-		(item) =>
-			`- ${item.name} x${item.quantity} = ₹${item.price * item.quantity}`
-	)
-	.join("\n")}
+${order.items && order.items.length > 0
+	? order.items
+		.map(
+			(item) =>
+				`- ${item.name} x${item.quantity} = ₹${item.price * item.quantity}`
+		)
+		.join("\n")
+	: 'No items information available'}
 
 TOTAL AMOUNT: ₹${order.totalAmount}
 
-PAYMENT INFORMATION:
+${payment ? `PAYMENT INFORMATION:
 Transaction ID: ${payment.transactionId}
 Card (Last 4): ****${payment.lastFour}
-Status: ${payment.status.toUpperCase()}
+Status: ${payment.status.toUpperCase()}` : ''}
 
 ORDER STATUS: ${order.status.toUpperCase()}
 
@@ -134,24 +136,28 @@ Thank you for your order!
 						<h2 className="text-xl font-semibold text-gray-900 mb-4">
 							Order Items
 						</h2>
-						<div className="space-y-3">
-							{order.items.map((item, idx) => (
-								<div
-									key={idx}
-									className="flex justify-between items-center p-3 bg-gray-50 rounded"
-								>
-									<div>
-										<p className="font-semibold text-gray-900">{item.name}</p>
-										<p className="text-sm text-gray-600">
-											Qty: {item.quantity}
+						{order.items && order.items.length > 0 ? (
+							<div className="space-y-3">
+								{order.items.map((item, idx) => (
+									<div
+										key={idx}
+										className="flex justify-between items-center p-3 bg-gray-50 rounded"
+									>
+										<div>
+											<p className="font-semibold text-gray-900">{item.name}</p>
+											<p className="text-sm text-gray-600">
+												Qty: {item.quantity}
+											</p>
+										</div>
+										<p className="font-semibold text-gray-900">
+											₹{item.price * item.quantity}
 										</p>
 									</div>
-									<p className="font-semibold text-gray-900">
-										₹{item.price * item.quantity}
-									</p>
-								</div>
-							))}
-						</div>
+								))}
+							</div>
+						) : (
+							<p className="text-gray-600">No item details available</p>
+						)}
 					</div>
 
 					<div className="mt-8 flex gap-2 flex-wrap">
@@ -165,12 +171,12 @@ Thank you for your order!
 							onClick={downloadReceipt}
 							className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg"
 						>
-							Download Receipt
-						</button>
-						{order.status !== "cancelled" && order.status !== "delivered" && (
-							<button
-								onClick={() => updateOrderStatus(order.id, "cancelled")}
-								className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg"
+						Download Receipt
+					</button>
+					{order.status !== "canceled" && order.status !== "delivered" && (
+						<button
+							onClick={() => updateOrderStatus(order.id, "canceled")}
+							className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg"
 							>
 								Cancel Order
 							</button>

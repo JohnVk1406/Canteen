@@ -4,29 +4,23 @@ import sequelize from '../config/database.js';
 // Define the attributes interface
 export interface UserAttributes {
   id: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   password: string;
-  phone: string;
-  role: 'admin' | 'customer';
   createdAt: Date;
   updatedAt: Date;
 }
 
 // Define creation attributes
 export interface UserCreationAttributes 
-  extends Optional<UserAttributes, 'id' | 'createdAt' | 'updatedAt' | 'role'> {}
+  extends Optional<UserAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
 
 // Define the User model class
 class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public id!: string;
-  public firstName!: string;
-  public lastName!: string;
+  public name!: string;
   public email!: string;
   public password!: string;
-  public phone!: string;
-  public role!: 'admin' | 'customer';
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -40,35 +34,18 @@ User.init(
       primaryKey: true,
       allowNull: false,
     },
-    firstName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    lastName: {
-      type: DataTypes.STRING,
+    name: {
+      type: DataTypes.STRING(255),
       allowNull: false,
     },
     email: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(255),
       allowNull: false,
       unique: true,
-      validate: {
-        isEmail: true,
-      },
     },
     password: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(255),
       allowNull: false,
-    },
-    phone: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    role: {
-      type: DataTypes.ENUM('admin', 'customer'),
-      allowNull: false,
-      defaultValue: 'customer',
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -83,7 +60,6 @@ User.init(
     sequelize,
     tableName: 'users',
     timestamps: true,
-    underscored: false,
   }
 );
 

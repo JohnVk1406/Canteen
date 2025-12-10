@@ -48,30 +48,35 @@ export default function CheckoutPage() {
 		setError("");
 
 		try {
+			// First, create order in backend with userId
+			const userId = "user-123"; // TODO: Replace with actual logged-in user ID
+			const orderItems = cart.map((item) => ({
+				id: item.id,
+				name: item.name,
+				price: item.price,
+				quantity: 1,
+			}));
+
+			// Create order in backend
+			const order = await addOrder(userId, orderItems, totalAmount);
+
+			// Process payment with backend
 			const response = await processPayment(totalAmount, paymentDetails);
 
 			if (response.success && response.transactionId) {
-				// Create order
-				const orderItems = cart.map((item) => ({
-					id: item.id,
-					name: item.name,
-					price: item.price,
-					quantity: 1,
-				}));
-
-				const order = addOrder(orderItems, totalAmount);
-				
-				// Record payment
+				// Record payment locally
 				const lastFour = paymentDetails.cardNumber.slice(-4);
 				addPayment(order.id, totalAmount, response.transactionId, lastFour);
 				
-				// Update order status
-				updateOrderStatus(order.id, "confirmed");
+				// Update order status in backend
+				await updateOrderStatus(order.id, "completed");
 
 				clearCart();
 				setPaymentAttempts(0);
 				router.push(`/orders/${order.id}?payment=success`);
 			} else {
+				// Payment failed, cancel the order
+				await updateOrderStatus(order.id, "canceled");
 				setError(response.message);
 				setPaymentAttempts((prev) => prev + 1);
 				

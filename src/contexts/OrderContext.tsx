@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import { ordersApi } from "@/lib/api";
 
 export interface OrderItem {
 	id: number;
@@ -11,68 +12,107 @@ export interface OrderItem {
 
 export interface Order {
 	id: string;
+	userId: string;
 	items: OrderItem[];
 	totalAmount: number;
-	status: "pending" | "confirmed" | "processing" | "delivered" | "cancelled";
-	paymentStatus: "pending" | "completed" | "failed";
+	status: "pending" | "completed" | "canceled";
 	createdAt: Date;
 	updatedAt: Date;
 }
 
 interface OrderContextType {
 	orders: Order[];
-	addOrder: (items: OrderItem[], totalAmount: number) => Order;
-	updateOrderStatus: (orderId: string, status: Order["status"]) => void;
-	cancelOrder: (orderId: string) => void;
-	deleteOrder: (orderId: string) => void;
+	loading: boolean;
+	addOrder: (userId: string, items: OrderItem[], totalAmount: number) => Promise<Order>;
+	updateOrderStatus: (orderId: string, status: Order["status"]) => Promise<void>;
+	cancelOrder: (orderId: string) => Promise<void>;
+	deleteOrder: (orderId: string) => Promise<void>;
 	getOrderById: (orderId: string) => Order | undefined;
+	refreshOrders: () => Promise<void>;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
 export function OrderProvider({ children }: { children: React.ReactNode }) {
 	const [orders, setOrders] = useState<Order[]>([]);
+	const [loading, setLoading] = useState(false);
 
-	const addOrder = (items: OrderItem[], totalAmount: number): Order => {
-		const newOrder: Order = {
-			id: `ORD-${Date.now()}`,
-			items,
-			totalAmount,
-			status: "pending",
-			paymentStatus: "pending",
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		};
-		setOrders((prev) => [newOrder, ...prev]);
-		return newOrder;
+	// Load orders from backend on mount
+	useEffect(() => {
+		refreshOrders();
+	}, []);
+
+	const refreshOrders = async () => {
+		try {
+			setLoading(true);
+			const response = await ordersApi.getAll();
+			if (response.success) {
+				setOrders(response.data);
+			}
+		} catch (error) {
+			console.error("Failed to load orders:", error);
+		} finally {
+			setLoading(false);
+		}
 	};
 
-	const updateOrderStatus = (orderId: string, status: Order["status"]) => {
-		setOrders((prev) =>
-			prev.map((order) =>
-				order.id === orderId
-					? { ...order, status, updatedAt: new Date() }
-					: order
-			)
-		);
+	const addOrder = async (userId: string, items: OrderItem[], totalAmount: number): Promise<Order> => {
+		try {
+			const response = await ordersApi.create(userId, totalAmount, items);
+			if (response.success) {
+				const newOrder = response.data;
+				setOrders((prev) => [newOrder, ...prev]);
+				return newOrder;
+			}
+			throw new Error(response.message || "Failed to create order");
+		} catch (error) {
+			console.error("Failed to create order:", error);
+			throw error;
+		}
 	};
 
-	const cancelOrder = (orderId: string) => {
-		setOrders((prev) =>
-			prev.map((order) =>
-				order.id === orderId
-					? {
-							...order,
-							status: "cancelled",
-							updatedAt: new Date(),
-					}
-					: order
-			)
-		);
+	const updateOrderStatus = async (orderId: string, status: Order["status"]) => {
+		try {
+			console.log(`Updating order ${orderId} to status: ${status}`);
+			const response = await ordersApi.updateStatus(orderId, status);
+			console.log('Update response:', response);
+			if (response.success) {
+				setOrders((prev) =>
+					prev.map((order) =>
+						order.id === orderId
+							? { ...order, status, updatedAt: new Date() }
+							: order
+					)
+				);
+				console.log('Order status updated successfully');
+			} else {
+				console.error('Failed to update order:', response.message);
+			}
+		} catch (error) {
+			console.error("Failed to update order:", error);
+			throw error;
+		}
 	};
 
-	const deleteOrder = (orderId: string) => {
-		setOrders((prev) => prev.filter((order) => order.id !== orderId));
+	const cancelOrder = async (orderId: string) => {
+		console.log('Cancel order called for:', orderId);
+		try {
+			await updateOrderStatus(orderId, "canceled");
+		} catch (error) {
+			console.error('Cancel order error:', error);
+		}
+	};
+
+	const deleteOrder = async (orderId: string) => {
+		try {
+			const response = await ordersApi.delete(orderId);
+			if (response.success) {
+				setOrders((prev) => prev.filter((order) => order.id !== orderId));
+			}
+		} catch (error) {
+			console.error("Failed to delete order:", error);
+			throw error;
+		}
 	};
 
 	const getOrderById = (orderId: string) => {
@@ -83,11 +123,13 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
 		<OrderContext.Provider
 			value={{
 				orders,
+				loading,
 				addOrder,
 				updateOrderStatus,
 				cancelOrder,
 				deleteOrder,
 				getOrderById,
+				refreshOrders,
 			}}
 		>
 			{children}
