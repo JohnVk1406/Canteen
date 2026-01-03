@@ -3,6 +3,7 @@ import cors from 'cors';
 
 // Import routes
 import { userRouter } from './routes/index.js';
+import orderItemRoutes from './routes/orderItemRoutes.js';
 
 // Import middleware
 import { errorHandler } from './middleware/index.js';
@@ -25,6 +26,7 @@ app.get('/', (req, res) => {
 
 // API Routes
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1', orderItemRoutes);
 // TODO: Add more routes
 // app.use('/api/items', itemRoutes);
 // app.use('/api/orders', orderRoutes);
